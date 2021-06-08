@@ -1,40 +1,24 @@
 import cv2
-from matplotlib import pyplot as plt
+import numpy as np
 
-# Opening image
-img = cv2.imread("image.jpg")
+# Load image, grayscale, Gaussian blur, Otsu's threshold
+image = cv2.imread('images/1.jpg')
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+blur = cv2.GaussianBlur(gray, (7,7), 0)
+thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
-# OpenCV opens images as BRG
-# but we want it as RGB We'll
-# also need a grayscale version
-img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+# Create rectangular structuring element and dilate
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
+dilate = cv2.dilate(thresh, kernel, iterations=20)
 
-# Use minSize because for not
-# bothering with extra-small
-# dots that would look like STOP signs
-stop_data = cv2.CascadeClassifier('stop_data.xml')
+# Find contours and draw rectangle
+cnts = cv2.findContours(dilate, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+for c in cnts:
+    x,y,w,h = cv2.boundingRect(c)
+    cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 2)
 
-found = stop_data.detectMultiScale(img_gray,
-                                   minSize=(20, 20))
-
-# Don't do anything if there's
-# no sign
-amount_found = len(found)
-
-if amount_found != 0:
-
-    # There may be more than one
-    # sign in the image
-    for (x, y, width, height) in found:
-        # We draw a green rectangle around
-        # every recognized sign
-        cv2.rectangle(img_rgb, (x, y),
-                      (x + height, y + width),
-                      (0, 255, 0), 5)
-
-# Creates the environment of
-# the picture and shows it
-plt.subplot(1, 1, 1)
-plt.imshow(img_rgb)
-plt.show()
+cv2.imshow('thresh', thresh)
+cv2.imshow('dilate', dilate)
+cv2.imshow('image', image)
+cv2.waitKey()
