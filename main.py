@@ -1,24 +1,44 @@
-import cv2
+import cv2 as cv
 import numpy as np
+from utils import stackImages, getContours
 
-# Load image, grayscale, Gaussian blur, Otsu's threshold
-image = cv2.imread('images/1.jpg')
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-blur = cv2.GaussianBlur(gray, (7,7), 0)
-thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
-# Create rectangular structuring element and dilate
-kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
-dilate = cv2.dilate(thresh, kernel, iterations=20)
+path = 'images/1.jpg'
+img = cv.imread(path)
+imgContour = img.copy()
 
-# Find contours and draw rectangle
-cnts = cv2.findContours(dilate, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-for c in cnts:
-    x,y,w,h = cv2.boundingRect(c)
-    cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 2)
+kernel = np.ones((5, 5), np.uint8)
+imgGray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+imgBlur = cv.GaussianBlur(imgGray, (7, 7), 0)
+imgCanny = cv.Canny(img, 150, 200)
+imgDialation = cv.dilate(imgCanny, kernel, iterations=20)
+# cv.imshow("imgEroded Image", imgDialation)
 
-cv2.imshow('thresh', thresh)
-cv2.imshow('dilate', dilate)
-cv2.imshow('image', image)
-cv2.waitKey()
+# imgCanny_1 = cv.Canny(imgDialation, 50,50)
+
+getContours(imgCanny, imgContour)
+
+imgBlank = np.zeros_like(img)
+
+imgStack = stackImages(0.6, ([img, imgGray, imgBlur],
+                             [imgCanny, imgContour, imgBlank]))
+
+cv.imshow("stack", imgStack)
+
+
+
+# # cv.imshow("Grey Image", imgGray)
+# # cv.imshow("Blur Image", imgBlur)
+# # cv.imshow("Canny Image", imgGray)
+# cv.imshow("Dialation Image", imgDialation)
+#
+# print(img.shape)
+#
+# # Height then width
+# imgCropped = imgDialation[0:200, 200:500]
+# cv.imshow("cropped Image", imgCropped)
+
+
+# pts1 = np.float32([[111, 219], [287, 188], ])
+
+cv.waitKey(0)
