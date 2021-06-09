@@ -35,36 +35,19 @@ def stackImages(scale, imgArray):
     return ver
 
 
-def getContours(img, imgContour):
-    contours, hierarchy = cv.findContours(img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+def getContours(imgCanny, imgContour, imageBox):
+    contours, hierarchy = cv.findContours(imgCanny, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
     for cnt in contours:
-        area = cv.contourArea(cnt)
+        # area = cv.contourArea(cnt)
         # print(area)
 
         # Area greater than 500
-        if area > 500:
-            cv.drawContours(imgContour, cnt, -1, (255, 0, 0), 3)
-            peri = cv.arcLength(cnt, True)
-            # print(peri)
-            approx = cv.approxPolyDP(cnt, 0.02 * peri, True)
-            print(approx)
-            objCor = len(approx)
-            x, y, w, h = cv.boundingRect(approx)
+        # if area > 50:
+            # cv.drawContours(imgContour, cnt, -1, (255, 255, 0), 30)
+            #
+            # peri = cv.arcLength(cnt, True)
+            # print("peri", cnt)
+            # approx = cv.approxPolyDP(cnt, 0.02 * peri, True)
 
-            if objCor == 3:
-                objectType = "Tri"
-            elif objCor == 4:
-                aspRatio = w / float(h)
-                if 0.98 < aspRatio < 1.03:
-                    objectType = "Square"
-                else:
-                    objectType = "Rectangle"
-            elif objCor > 4:
-                objectType = "Circles"
-            else:
-                objectType = "None"
-
-            cv.rectangle(imgContour, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv.putText(imgContour, objectType,
-                       (x + (w // 2) - 10, y + (h // 2) - 10), cv.FONT_HERSHEY_COMPLEX, 0.7,
-                       (0, 0, 0), 2)
+        x, y, w, h = cv.boundingRect(cnt)
+        cv.rectangle(imgCanny, (x, y), (x + w, y + h), (255, 0, 0), 1)
