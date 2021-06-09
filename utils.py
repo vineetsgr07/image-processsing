@@ -41,7 +41,7 @@ def getContours(imgDialation):
     store = []
     for cnt in contours:
         x, y, w, h = cv.boundingRect(cnt)
-        store.push(x, y, w, h)
+        store.append({x, y, w, h})
         cv.drawContours(imgDialation, cnt, -1, (255, 255, 0), 10)
 
     # Find center x-axis of page
@@ -63,25 +63,23 @@ def getContours(imgDialation):
 
 # Remove Right section of article
 def removeAfterXFunc(store):
-
-
     return True
 
 
 # Remove Left section of article
-def removeBeforeXFunc(x, w):
+def removeBeforeXFunc(store):
     return True
 
 
 # Remove Footer
-def removeAfterYFunc(x, w):
+def removeAfterYFunc(store):
     return True
 
 
 # Remove Header
-def removeBeforeYFunc(x, w):
+def removeBeforeYFunc(store):
     return True
 
 
-def detectImageFunc(x, w):
+def detectImageFunc(store):
     return True
