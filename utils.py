@@ -35,19 +35,53 @@ def stackImages(scale, imgArray):
     return ver
 
 
-def getContours(imgCanny, imgContour, imageBox):
-    contours, hierarchy = cv.findContours(imgCanny, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+def getContours(imgDialation):
+    imageDimension = imgDialation.shape
+    contours, hierarchy = cv.findContours(imgDialation, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+    store = []
     for cnt in contours:
-        # area = cv.contourArea(cnt)
-        # print(area)
-
-        # Area greater than 500
-        # if area > 50:
-            # cv.drawContours(imgContour, cnt, -1, (255, 255, 0), 30)
-            #
-            # peri = cv.arcLength(cnt, True)
-            # print("peri", cnt)
-            # approx = cv.approxPolyDP(cnt, 0.02 * peri, True)
-
         x, y, w, h = cv.boundingRect(cnt)
-        cv.rectangle(imgCanny, (x, y), (x + w, y + h), (255, 0, 0), 1)
+        store.push(x, y, w, h)
+        cv.drawContours(imgDialation, cnt, -1, (255, 255, 0), 10)
+
+    # Find center x-axis of page
+
+    removeAfterX = removeAfterXFunc(store)
+    removeBeforeX = removeBeforeXFunc(store)
+    removeAfterY = removeAfterYFunc(store)
+    removeBeforeY = removeBeforeYFunc(store)
+    detectImage = detectImageFunc(store)
+
+    return {
+        removeAfterX,
+        removeBeforeX,
+        removeAfterY,
+        removeBeforeY,
+        detectImage
+    }
+
+
+# Remove Right section of article
+def removeAfterXFunc(store):
+
+
+    return True
+
+
+# Remove Left section of article
+def removeBeforeXFunc(x, w):
+    return True
+
+
+# Remove Footer
+def removeAfterYFunc(x, w):
+    return True
+
+
+# Remove Header
+def removeBeforeYFunc(x, w):
+    return True
+
+
+def detectImageFunc(x, w):
+    return True
