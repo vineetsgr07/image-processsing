@@ -37,16 +37,18 @@ def stackImages(scale, imgArray):
 
 def getContours(imgDialation):
     imageDimension = imgDialation.shape
+    height = imageDimension[0]
+    width = imageDimension[1]
     contours, hierarchy = cv.findContours(imgDialation, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
     store = []
     for cnt in contours:
         x, y, w, h = cv.boundingRect(cnt)
-        store.append({x, y, w, h})
+        store.append({'x': x, 'y': y, 'w': w, 'h': h})
         cv.drawContours(imgDialation, cnt, -1, (255, 255, 0), 10)
 
-    # Find center x-axis of page
+    cropImage(imgDialation, store[1]['y'], store[0]['h'], store[0]['x'], store[0]['w'])
 
-    removeAfterX = removeAfterXFunc(store)
+    removeAfterX = removeLeftSection(store, width/2)
     removeBeforeX = removeBeforeXFunc(store)
     removeAfterY = removeAfterYFunc(store)
     removeBeforeY = removeBeforeYFunc(store)
@@ -62,7 +64,14 @@ def getContours(imgDialation):
 
 
 # Remove Right section of article
-def removeAfterXFunc(store):
+def removeLeftSection(store, centerPoint):
+    remove = []
+    for shape in store:
+        x, y, w, h = shape
+        if(y <= centerPoint):
+            remove.append({'y': y})
+
+
     return True
 
 
@@ -83,3 +92,13 @@ def removeBeforeYFunc(store):
 
 def detectImageFunc(store):
     return True
+
+
+def cropImage(image, y, h, x, w):
+    crop_img = image[y:y + h, x:x + w]
+    cv.imshow("crop_img", crop_img)
+    return crop_img
+
+def trimImage(imgDialation):
+    TrimmedImage = 0
+    return TrimmedImage

@@ -1,6 +1,6 @@
 import cv2 as cv
 import numpy as np
-from utils import stackImages, getContours
+from utils import stackImages, getContours, trimImage
 
 path = 'images/4.jpg'
 img = cv.imread(path)
@@ -15,10 +15,11 @@ imgBlank = np.zeros_like(imgGray)
 kernel = np.ones((5,5),np.uint8)
 imgDialation = cv.dilate(imgCanny, kernel, iterations=5)
 
-getContours(imgDialation)
+capturePoint = getContours(imgDialation)
 
-imgStack = stackImages(0.6, ([imgGray, imgContour, imgDialation],
-                             [imgGray, imgContour, imgDialation]))
+tripImageDimension = trimImage(imgDialation)
+
+imgStack = stackImages(0.6, ([imgGray, imgContour, imgDialation],[imgGray, imgContour, imgDialation]))
 
 cv.imshow("stack", imgStack)
 cv.waitKey(0)
