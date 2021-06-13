@@ -35,49 +35,76 @@ def stackImages(scale, imgArray):
     return ver
 
 
-def getContours(imgDialation):
-    imageDimension = imgDialation.shape
+def getContours(img_dialation, actualImage):
+
+    imageDimension = img_dialation.shape
     height = imageDimension[0]
     width = imageDimension[1]
-    contours, hierarchy = cv.findContours(imgDialation, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+    contours, hierarchy = cv.findContours(img_dialation, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
     store = []
     for cnt in contours:
         x, y, w, h = cv.boundingRect(cnt)
         store.append({'x': x, 'y': y, 'w': w, 'h': h})
-        cv.drawContours(imgDialation, cnt, -1, (255, 255, 0), 10)
+        cv.drawContours(img_dialation, cnt, -1, (255, 255, 0), 10)
 
-    cropImage(imgDialation, store[1]['y'], store[0]['h'], store[0]['x'], store[0]['w'])
+    actualScreenDimension = 900
+    fullWidthDimension = removeHeader(store, width, actualScreenDimension)
 
-    removeAfterX = removeLeftSection(store, width/2)
-    removeBeforeX = removeBeforeXFunc(store)
-    removeAfterY = removeAfterYFunc(store)
-    removeBeforeY = removeBeforeYFunc(store)
-    detectImage = detectImageFunc(store)
+    trimLeftSectionX, trimRightSectionY = removeLeftSection(store, width)
+    height = actualImage.shape[0]
+    croppedImage = cropImage(actualImage, fullWidthDimension[0]['y'] + fullWidthDimension[0]['h'], height,
+                             trimLeftSectionX, trimRightSectionY - trimLeftSectionX)
+    croppedDialationImage = cropImage(img_dialation, fullWidthDimension[0]['y'] + fullWidthDimension[0]['h'], height,
+                             trimLeftSectionX, trimRightSectionY - trimLeftSectionX)
 
-    return {
-        removeAfterX,
-        removeBeforeX,
-        removeAfterY,
-        removeBeforeY,
-        detectImage
-    }
-
-
-# Remove Right section of article
-def removeLeftSection(store, centerPoint):
-    remove = []
-    for shape in store:
-        x, y, w, h = shape
-        if(y <= centerPoint):
-            remove.append({'y': y})
-
-
-    return True
+    return trimLeftSectionX, trimRightSectionY, croppedImage, croppedDialationImage
 
 
 # Remove Left section of article
-def removeBeforeXFunc(store):
-    return True
+def removeHeader(store, width, actualScreenDimension):
+    fullWidthDimension = []
+    for shape in range(len(store)):
+        if width == int(store[shape]['w']):
+            fullWidthDimension.append(store[shape])
+
+    return fullWidthDimension
+
+
+# Remove Right section of article
+def removeLeftSection(store, width):
+    pixelCount = [0] * width
+    for shape in store:
+        pixelCount = countPixel(pixelCount, shape, width)
+
+    sum = 0
+    for pixel in pixelCount:
+        sum += pixel
+
+    average = sum/width
+    for pixel in range(len(pixelCount)):
+        if pixelCount[pixel] < average-1:
+            pixelCount[pixel] = 0
+
+    trimLeftSectionX = 0
+    trimRightSectionY = 0
+    for pixel in range(len(pixelCount)):
+        if pixelCount[pixel] > 0 and trimLeftSectionX == 0:
+            trimLeftSectionX = pixel - 30
+        if trimLeftSectionX > 0 and pixelCount[pixel] == 0:
+            trimRightSectionY = pixel
+            break;
+
+    return trimLeftSectionX, trimRightSectionY
+
+
+def countPixel(pixelCount, shape, width):
+    x, y, w, h = shape
+    for path in range(shape['x'], shape['y']):
+        # There are some cases where actual image width is smaller than dialation_image width
+        if shape['y'] < width:
+            pixelCount[path] = pixelCount[path] + 1
+
+    return pixelCount
 
 
 # Remove Footer
@@ -96,8 +123,8 @@ def detectImageFunc(store):
 
 def cropImage(image, y, h, x, w):
     crop_img = image[y:y + h, x:x + w]
-    cv.imshow("crop_img", crop_img)
     return crop_img
+
 
 def trimImage(imgDialation):
     TrimmedImage = 0
