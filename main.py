@@ -1,34 +1,27 @@
-import cv2 as cv
-import numpy as np
-from utils import stackImages, getContours, trimImage
-from PIL import Image
-from pytesseract import image_to_string, image_to_boxes
+import flask
+import pymongo
+from imageToText import image_to_Text
+from key import keyPath
 
-path = 'images/4.jpg'
-img = cv.imread(path)
-actualImage = img.copy()
+app = flask.Flask(__name__)
+app.config["DEBUG"] = True
 
-imgGray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-imgCanny = cv.Canny(imgGray, 150, 200)
-imageBox = img.shape
+client = pymongo.MongoClient(keyPath)
+db = client.test
 
-imgBlank = np.zeros_like(imgGray)
-
-kernel = np.ones((5, 5), np.uint8)
-imgDialation = cv.dilate(imgCanny, kernel, iterations=10)
-
-trimLeftSectionX, trimRightSectionY, croppedImage, croppedDialationImage = getContours(imgDialation, actualImage)
-
-tripImageDimension = trimImage(imgDialation)
-
-imgStack = stackImages(0.6, ([imgDialation, croppedDialationImage, croppedImage], [imgGray, actualImage, croppedImage]))
-
-im_pil = Image.fromarray(croppedImage)
-im_np = np.asarray(im_pil)
-characterWithText = image_to_boxes(im_pil)
-imageWithText = image_to_string(im_pil)
+print("db", db)
+@app.route('/', methods=['GET'])
+def home():
+    return '''<h1>Distant Reading Archive</h1>
+<p>A prototype API for distant reading of science fiction novels.</p>'''
 
 
+# A route to return all of the available entries in our catalog.
+@app.route('/api/v1/transform-image', methods=['GET'])
+def api_all():
+    path = 'images/1.jpg'
+    characterWithText, imageWithText, actualImage, croppedImage = image_to_Text(path)
+    db.mapper.insert_one({'title': "todo title", 'body': "todo body"})
+    return imageWithText
 
-cv.imshow("stack", imgStack)
-cv.waitKey(0)
+app.run()
