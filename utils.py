@@ -106,18 +106,17 @@ def countPixel(pixelCount, shape, width):
 
     return pixelCount
 
-
-# Remove Footer
-def removeAfterYFunc(store):
-    return True
-
-
 # Remove Header
 def removeBeforeYFunc(store):
     return True
 
 
 def detectImageFunc(store):
+    return True
+
+
+# Remove Footer
+def removeAfterYFunc(store):
     return True
 
 
