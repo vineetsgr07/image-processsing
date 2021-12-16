@@ -5,3 +5,14 @@ Capture full website as screenshot and trim it further to extract readable and u
 
 #### Library Used: 
 OpenCv, imageToText, pytesseract, PIL, numpy 
+
+###
+pip3 freeze > requirements.txt
+
+
+### Activate virtual Environment 
+source venv/bin/activate
+
+
+### Run Code
+python
